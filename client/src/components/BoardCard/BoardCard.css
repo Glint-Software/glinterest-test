@@ -1,0 +1,43 @@
+.board-card {
+  display: block;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+
+.board-card:hover {
+  transform: translateY(-2px);
+}
+
+.board-card-cover {
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.board-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.board-card-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--color-bg-secondary);
+}
+
+.board-card-info {
+  padding: 8px 4px;
+}
+
+.board-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.board-card-count {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
