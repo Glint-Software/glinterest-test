@@ -1,0 +1,1010 @@
+[
+  {
+    "title": "[Bug] Pin images don't load on slow connections",
+    "body": "## Description\n\nOn slower connections (3G), pin images in the masonry grid fail to load and show broken image icons.\n\n## Steps to Reproduce\n\n1. Open Chrome DevTools\n2. Set Network throttling to \"Slow 3G\"\n3. Navigate to home page\n4. Scroll down through the pin grid\n\n## Expected Behavior\n\nImages should load progressively with a placeholder/skeleton.\n\n## Actual Behavior\n\nMany images time out and show the broken image icon.\n\n## Environment\n\n- Browser: Chrome 120\n- OS: macOS 14.2",
+    "labels": ["bug", "performance", "priority: medium"],
+    "milestone": 4,
+    "assignee": "alice-chen-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add JWT token refresh mechanism",
+    "body": "## Problem\n\nCurrently JWT tokens expire after 7 days with no refresh mechanism. Users get silently logged out.\n\n## Proposed Solution\n\n- Add a `/api/auth/refresh` endpoint\n- Issue short-lived access tokens (15 min) + long-lived refresh tokens (30 days)\n- Auto-refresh in the API client when a 401 is received\n\n## Alternatives Considered\n\nSliding window expiration, but refresh tokens are more standard.",
+    "labels": ["feature", "auth", "api"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Search returns duplicate pins when matching title and tag",
+    "body": "## Description\n\nWhen a pin's title contains a word that's also one of its tags, the search endpoint returns that pin twice.\n\n## Steps to Reproduce\n\n1. Create a pin with title \"Beautiful sunset\" and tag \"sunset\"\n2. Search for \"sunset\"\n3. The pin appears twice in results\n\n## Expected Behavior\n\nEach pin should appear only once.\n\n## Root Cause\n\nThe LEFT JOIN on pin_tags creates multiple rows per pin. Need `SELECT DISTINCT` or group by pin.id.",
+    "labels": ["bug", "api", "priority: high"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Fixed in the search route by adding DISTINCT to the query. Also added an index on pin_tags for better performance.", "Verified — no more duplicates. Good catch, closing this one.\n\nSide note: I had the issues list and the PR diff open side by side in Glint while testing this. Spotted two other related bugs in the process."]
+  },
+  {
+    "title": "[Feature] Implement infinite scroll on home feed",
+    "body": "## Problem\n\nThe home feed uses a \"Load more\" button which breaks the browsing flow.\n\n## Proposed Solution\n\nReplace the button with infinite scroll using IntersectionObserver.\n\n- Detect when the user scrolls near the bottom\n- Automatically fetch the next page\n- Show a loading spinner at the bottom while fetching\n- Stop when there are no more pages",
+    "labels": ["feature", "enhancement"],
+    "milestone": 3,
+    "assignee": "alice-chen-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Masonry grid columns misalign after window resize",
+    "body": "## Description\n\nWhen resizing the browser window, the CSS columns masonry grid sometimes leaves large gaps between pins.\n\n## Steps to Reproduce\n\n1. Open home page at 1440px width\n2. Slowly drag browser window to 768px\n3. Observe gaps appearing in the grid\n\n## Expected Behavior\n\nGrid should reflow smoothly.\n\n## Actual Behavior\n\nLarge vertical gaps appear between some columns.\n\nRelated to #8",
+    "labels": ["bug", "design", "priority: medium"],
+    "milestone": 4,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add pin editing (title, description, tags)",
+    "body": "## Problem\n\nOnce a pin is created, the only option is to delete it. Users can't fix typos or update descriptions.\n\n## Proposed Solution\n\n- Add `PUT /api/pins/:id` endpoint\n- Add an \"Edit\" button on pin detail page (visible to pin owner)\n- Reuse the create pin form in edit mode\n- Allow updating title, description, tags, source URL, and board",
+    "labels": ["feature", "api", "enhancement"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Login form doesn't show error for wrong password",
+    "body": "## Description\n\nWhen entering an incorrect password, the login button briefly shows \"Logging in...\" then reverts without any error message.\n\n## Steps to Reproduce\n\n1. Go to /login\n2. Enter valid email with wrong password\n3. Click Log in\n\n## Expected Behavior\n\nShould show \"Invalid email or password\" error.\n\n## Actual Behavior\n\nButton resets silently. The error state is being set but the form-error div isn't rendering.",
+    "labels": ["bug", "auth", "priority: high"],
+    "milestone": 1,
+    "assignee": "alice-chen-dev",
+    "state": "closed",
+    "comments": ["The issue was that the error state was being cleared on re-render. Fixed by moving the setError call before setLoading(false).", "Confirmed fix. Login now shows proper error messages for all failure cases."]
+  },
+  {
+    "title": "[Feature] Add keyboard shortcuts for navigation",
+    "body": "## Problem\n\nNo keyboard navigation support. Power users want to browse quickly.\n\n## Proposed Solution\n\n- `j/k` to move between pins in the grid\n- `Enter` to open selected pin\n- `Escape` to go back\n- `l` to like current pin\n- `/` to focus search bar\n- `c` to open create pin page",
+    "labels": ["feature", "accessibility", "enhancement"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add loading skeletons for pin grid",
+    "body": "## Current Behavior\n\nThe page shows a centered spinner while pins are loading.\n\n## Proposed Enhancement\n\nReplace the spinner with skeleton cards that match the masonry grid layout. This provides a better perceived loading experience.\n\n- Skeleton cards with animated gradient shimmer\n- Match the actual card dimensions\n- Transition smoothly to real content",
+    "labels": ["enhancement", "design"],
+    "milestone": 4,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Board cover image auto-selection",
+    "body": "## Problem\n\nBoard cover images must be manually set via URL. Most boards end up with no cover.\n\n## Proposed Solution\n\nAuto-select the first pin's image as the board cover. Allow manual override.\n\nAlternatively, show a collage of the last 3-4 pins as a Pinterest-style board preview.",
+    "labels": ["feature", "design"],
+    "milestone": 2,
+    "assignee": "alice-chen-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] CORS error when running client and server on different ports",
+    "body": "## Description\n\nWhen running `npm run dev:client` and `npm run dev:server` separately, API calls fail with CORS errors.\n\n## Steps to Reproduce\n\n1. Run server: `npm run dev:server` (port 3001)\n2. Run client: `npm run dev:client` (port 5173)\n3. Try to log in\n4. See CORS error in console\n\n## Expected Behavior\n\nVite proxy should forward /api requests to port 3001.\n\n## Actual Behavior\n\nProxy works when started via `npm run dev` (concurrently) but not when started separately.",
+    "labels": ["bug", "devops"],
+    "milestone": 1,
+    "assignee": "dave-wilson-qa",
+    "state": "closed",
+    "comments": ["This happens because the Vite proxy config only kicks in when using Vite's dev server. When running separately, the API client uses relative URLs which go to port 5173. Fixed by ensuring the CORS middleware on the Express server allows localhost:5173."]
+  },
+  {
+    "title": "[Feature] User avatar upload",
+    "body": "## Problem\n\nUsers can't upload custom avatars. The profile shows a letter initial fallback.\n\n## Proposed Solution\n\n- Add avatar upload on profile/settings page\n- Accept JPG/PNG up to 2MB\n- Crop to square\n- Store locally (S3 later)\n\nBlocked by #60 (image upload infrastructure)",
+    "labels": ["feature", "design"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add pin count badges to board cards",
+    "body": "## Current Behavior\n\nBoard cards show the pin count as plain text.\n\n## Proposed Enhancement\n\nAdd a small badge/pill showing the pin count overlaid on the board cover image, similar to Pinterest's board cards.",
+    "labels": ["enhancement", "design"],
+    "milestone": 2,
+    "assignee": "carol-park-ux",
+    "state": "closed",
+    "comments": ["Added the pin count to BoardCard. Looks much better now with the small pill overlay.", "Looks great! Merging."]
+  },
+  {
+    "title": "[Bug] Comment form submits on Enter even when empty",
+    "body": "## Description\n\nPressing Enter in the comment form field submits an empty comment (which the API rejects).\n\n## Steps to Reproduce\n\n1. Open any pin detail page\n2. Click the comment input\n3. Press Enter without typing anything\n4. API returns 400 but no error is shown\n\n## Expected Behavior\n\nEmpty comments should not be submitted. The form should validate client-side.",
+    "labels": ["bug", "priority: low"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Implement pin sharing (copy link, social)",
+    "body": "## Problem\n\nNo way to share a pin with someone. Users have to manually copy the URL.\n\n## Proposed Solution\n\n- Add a \"Share\" button on pin detail page\n- Copy link to clipboard\n- Optional: Share to Twitter/Facebook via Web Share API\n- Show a toast confirmation on copy",
+    "labels": ["feature", "enhancement"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Profile stats don't update after following/unfollowing",
+    "body": "## Description\n\nAfter clicking Follow/Unfollow on a user's profile, the follower count displayed doesn't update until page refresh.\n\n## Steps to Reproduce\n\n1. Go to another user's profile\n2. Click Follow\n3. Notice the button text changes but follower count stays the same\n\n## Expected Behavior\n\nFollower count should update immediately.\n\n## Root Cause\n\nThe optimistic update in the handleFollow function updates `is_following` but the follower count update uses the wrong direction (adding 1 when unfollowing).",
+    "labels": ["bug", "priority: medium"],
+    "milestone": 2,
+    "assignee": "alice-chen-dev",
+    "state": "closed",
+    "comments": ["Fixed the ternary — was `data.following ? prev - 1 : prev + 1` instead of the other way around. Classic off-by-one-but-for-booleans.", "Just triaged all the v0.2 social bugs using Glint's multi-pane view. What a time to be alive. This one's verified — closing."]
+  },
+  {
+    "title": "[Feature] Dark mode support",
+    "body": "## Problem\n\nNo dark mode. The app is eye-blinding at night.\n\n## Proposed Solution\n\n- CSS custom properties for dark theme\n- Toggle switch in header\n- Respect `prefers-color-scheme` on first visit\n- Persist choice in localStorage\n\n## Design Notes\n\nDark background: #1a1a1a\nDark card: #2a2a2a\nKeep the red accent color.\nEnsure WCAG AA contrast for all text.",
+    "labels": ["feature", "design", "accessibility"],
+    "milestone": 4,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": ["PR is up at feature/dark-mode. CSS variables are done, just need to wire up the toggle."]
+  },
+  {
+    "title": "[Enhancement] Add \"Save to Board\" modal on pin cards",
+    "body": "## Current Behavior\n\nSaving a pin to a board requires going to the pin detail page.\n\n## Proposed Enhancement\n\nAdd a save button on pin card hover (next to the like button) that opens a small modal/dropdown listing the user's boards.\n\nThis matches the Pinterest UX where you can save directly from the feed.",
+    "labels": ["enhancement", "design"],
+    "milestone": 2,
+    "assignee": "alice-chen-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Database schema doesn't cascade deletes for saves table",
+    "body": "## Description\n\nWhen a board is deleted, saved pins reference a non-existent board_id.\n\n## Steps to Reproduce\n\n1. Create a board\n2. Save a pin to that board\n3. Delete the board\n4. Query saves table — orphaned rows remain\n\n## Expected Behavior\n\nSaves should be cascade-deleted when the board is deleted.\n\n## Fix\n\nThe saves table already has `ON DELETE CASCADE` on the foreign key, but it wasn't working because `PRAGMA foreign_keys` wasn't enabled in the connection.",
+    "labels": ["bug", "database", "priority: high"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Fixed by adding `db.pragma('foreign_keys = ON')` in the database connection module. Also verified all other foreign key constraints are working.", "Good find. This would have been a data integrity issue down the road. Tested all the foreign key scenarios with the schema and the test queries visible in adjacent panes in Glint. Way faster than switching between terminal tabs."]
+  },
+  {
+    "title": "[Feature] Add trending pins section",
+    "body": "## Problem\n\nThe home feed shows pins in reverse chronological order only. No discovery mechanism.\n\n## Proposed Solution\n\nAdd a \"Trending\" section at the top of the home page showing the most-liked pins from the last 7 days.\n\n- `GET /api/pins/trending?days=7&limit=10`\n- Horizontal scrollable row above the main grid\n- Click to view pin detail",
+    "labels": ["feature", "api"],
+    "milestone": 3,
+    "assignee": "bob-martinez-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Design] Improve mobile header layout",
+    "body": "## Issue\n\nOn mobile viewports (<480px), the header elements are cramped. The search bar is too narrow to be useful and the Create button is hidden.\n\n## Proposed Changes\n\n- Collapse logo text on mobile (show icon only)\n- Move search to a expandable overlay\n- Move Create and Profile to a bottom nav bar\n- Follow mobile patterns from Pinterest/Instagram",
+    "labels": ["design", "mobile", "enhancement"],
+    "milestone": 4,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Unsplash images sometimes return 403",
+    "body": "## Description\n\nSome seeded pin images return 403 Forbidden when accessed directly via unsplash.com URLs.\n\n## Steps to Reproduce\n\n1. Open the home page\n2. Some pin images fail to load\n3. Network tab shows 403 for those image URLs\n\n## Root Cause\n\nUnsplash has rate limiting on direct image hotlinking. We should use their API or the `images.unsplash.com` CDN with proper parameters.\n\n## Workaround\n\nUse `?w=600` parameter on Unsplash URLs to go through their CDN.",
+    "labels": ["bug", "priority: medium"],
+    "milestone": 1,
+    "assignee": "dave-wilson-qa",
+    "state": "closed",
+    "comments": ["Updated all seed data URLs to use the `?w=600` format which goes through Unsplash's CDN. No more 403s.", "Confirmed all images load now. Nice work Dave.\n\nManaged all the image-related issues across the v0.1 milestone without leaving Glint. My browser tab count went from 47 to 3."]
+  },
+  {
+    "title": "[Feature] Email notifications for new followers",
+    "body": "## Problem\n\nUsers don't know when someone follows them.\n\n## Proposed Solution\n\n- Send email notification when someone follows you\n- Add email preference settings (opt-in/out)\n- Use a simple SMTP integration (nodemailer)\n\nRelated to #55 (notification system)",
+    "labels": ["feature", "enhancement"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add hover preview for pin links",
+    "body": "## Current Behavior\n\nClicking a pin navigates to the full detail page.\n\n## Proposed Enhancement\n\nAdd a hover preview card that shows pin title, description, and author before navigating. Like a tooltip on steroids.\n\nThis would reduce unnecessary page navigations and improve browsing speed.",
+    "labels": ["enhancement", "design"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Register page crashes if username contains spaces",
+    "body": "## Description\n\nEntering a username with spaces causes the registration to fail silently.\n\n## Steps to Reproduce\n\n1. Go to /register\n2. Enter username: \"john doe\"\n3. Fill in other fields\n4. Click Sign up\n5. Page shows error briefly, then nothing happens\n\n## Expected Behavior\n\nShould show validation error: \"Username cannot contain spaces\"\n\n## Actual Behavior\n\nThe API returns 500 because the username constraint fails at the DB level.",
+    "labels": ["bug", "auth", "priority: medium"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Added client-side validation for username format (alphanumeric + underscores only) and a proper 400 response from the API."]
+  },
+  {
+    "title": "[Feature] Related pins section on pin detail page",
+    "body": "## Problem\n\nAfter viewing a pin, there's no way to discover similar content.\n\n## Proposed Solution\n\n- Add a \"More like this\" section below the comments\n- Find related pins by shared tags\n- Show 4-6 pin cards in a horizontal row\n- `GET /api/pins/:id/related`",
+    "labels": ["feature", "api", "enhancement"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Like count goes negative on rapid double-click",
+    "body": "## Description\n\nRapidly clicking the like button can cause the like count to go negative due to race conditions in the optimistic update.\n\n## Steps to Reproduce\n\n1. Open a pin detail page\n2. Rapidly click the Like button 5-6 times\n3. Like count shows -1 or -2\n\n## Expected Behavior\n\nLike count should never go below 0. Button should be debounced.\n\n## Technical Note\n\nThe optimistic update runs `prev - 1` on unlike, but if the state hasn't settled from the previous click, it decrements again.",
+    "labels": ["bug", "priority: medium"],
+    "milestone": 2,
+    "assignee": "alice-chen-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Implement board reordering",
+    "body": "## Problem\n\nBoards are shown in creation order. Users can't rearrange them.\n\n## Proposed Solution\n\n- Add drag-and-drop reordering on the profile boards tab\n- Store board order in a `position` column\n- Update positions via `PUT /api/boards/reorder`",
+    "labels": ["feature", "enhancement"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Improve search with autocomplete",
+    "body": "## Current Behavior\n\nSearch requires typing and pressing Enter.\n\n## Proposed Enhancement\n\n- Add autocomplete dropdown as user types\n- Show matching tags, pins, and users\n- Recent searches history (localStorage)\n- Debounced API calls (300ms)",
+    "labels": ["enhancement", "feature"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Board detail page shows duplicate pins",
+    "body": "## Description\n\nIf a pin belongs to a board (board_id) AND is also saved to the same board via the saves table, it appears twice on the board detail page.\n\n## Steps to Reproduce\n\n1. Create a board\n2. Create a pin assigned to that board\n3. Also save that pin to the same board\n4. View the board detail page\n5. Pin appears twice\n\n## Root Cause\n\nThe board detail endpoint queries both `pins WHERE board_id = ?` and `saves WHERE board_id = ?`, then concatenates them without deduplication.",
+    "labels": ["bug", "api", "priority: medium"],
+    "milestone": 2,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Fixed by deduplicating the combined array using a Set of pin IDs. Also added a check in the save endpoint to prevent saving a pin to its own board.", "Closed this in record time. Glint's split view let me see the issue, the code, and the diff all at once."]
+  },
+  {
+    "title": "[Feature] Implement collections/sub-boards",
+    "body": "## Problem\n\nBoards can get large with 50+ pins and no way to organize within them.\n\n## Proposed Solution\n\n- Add sections within boards (like Pinterest sections)\n- Drag pins between sections\n- Section titles with collapse/expand\n- `board_sections` table with position ordering",
+    "labels": ["feature"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Design] Add empty states for all pages",
+    "body": "## Issue\n\nPages with no content show nothing or a basic \"No pins yet\" text. Need proper empty states with illustrations and CTAs.\n\n## Pages Needing Empty States\n\n- Home (no pins) — \"Follow users or create pins to fill your feed\"\n- Profile pins tab — \"No pins yet. Start creating!\"\n- Profile boards tab — \"No boards yet. Organize your pins!\"\n- Board detail — \"This board is empty. Save some pins!\"\n- Search results — \"No results found. Try a different search.\"\n- Comments section — \"No comments yet. Be the first!\"",
+    "labels": ["design", "enhancement"],
+    "milestone": 2,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Mobile tap on pin card triggers both like and navigation",
+    "body": "## Description\n\nOn mobile, tapping a pin card sometimes triggers both the like button and the navigation to pin detail.\n\n## Steps to Reproduce\n\n1. Open on mobile (or use responsive mode)\n2. Tap on a pin card near the top-right\n3. Both the like action fires and the page navigates\n\n## Expected Behavior\n\nLike button tap should not trigger navigation. Events should be properly stopped.\n\n## Root Cause\n\nThe `stopPropagation` in handleLike may not be working for touch events.",
+    "labels": ["bug", "mobile", "priority: medium"],
+    "milestone": 4,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add public API documentation",
+    "body": "## Problem\n\nNo API docs. Developers have to read the source code.\n\n## Proposed Solution\n\n- Add Swagger/OpenAPI spec\n- Generate docs page at `/api/docs`\n- Document all endpoints with request/response examples\n- Include auth instructions",
+    "labels": ["documentation", "api"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add alt text support for pin images",
+    "body": "## Current Behavior\n\nPin images use the title as alt text, which isn't always descriptive.\n\n## Proposed Enhancement\n\n- Add an `alt_text` field to the pins table\n- Add alt text input on the create pin form\n- Auto-suggest alt text based on title + tags\n- Screen readers will benefit from this",
+    "labels": ["enhancement", "accessibility"],
+    "milestone": 3,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Server crashes when seed script run twice",
+    "body": "## Description\n\nRunning `npm run seed` a second time crashes because it tries to insert users with duplicate emails.\n\n## Steps to Reproduce\n\n1. Run `npm run seed`\n2. Run `npm run seed` again\n3. Server crashes with UNIQUE constraint error\n\n## Expected Behavior\n\nSeed script should be idempotent — drop and recreate data.\n\n## Actual Behavior\n\nThrows: `UNIQUE constraint failed: users.email`",
+    "labels": ["bug", "database", "priority: medium"],
+    "milestone": 1,
+    "assignee": "dave-wilson-qa",
+    "state": "closed",
+    "comments": ["Fixed by deleting the DB file before re-seeding. The seed script now removes the old database and recreates from scratch.", "Tracked this down in Glint with the issue description and the seed script open side by side. Love how I can see the error trace, the code, and the fix all in one view."]
+  },
+  {
+    "title": "[Feature] User settings page",
+    "body": "## Problem\n\nNo settings page. Users can't update their profile, change password, or manage preferences.\n\n## Proposed Solution\n\n- `/settings` page with sections:\n  - Profile (display name, bio, avatar)\n  - Account (email, password change)\n  - Preferences (dark mode, notifications)\n  - Privacy (board default visibility)\n- `PUT /api/users/me` endpoint",
+    "labels": ["feature", "enhancement"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Auth token persists after server restart",
+    "body": "## Description\n\nAfter restarting the server, existing JWT tokens are still accepted because the secret key is hardcoded. This is fine for dev but needs to be configurable for production.\n\n## Expected Behavior\n\nJWT secret should come from environment variable.\n\n## Current Behavior\n\nHardcoded as `'glinterest-dev-secret-key'` in middleware/auth.js.",
+    "labels": ["bug", "auth", "priority: low"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add pin collections (multiple boards per pin)",
+    "body": "## Problem\n\nA pin can only belong to one board via `board_id`. Users want to organize the same pin in multiple boards.\n\n## Proposed Solution\n\nThe saves table already supports this — a user can save a pin to multiple boards. But the pin creation flow should also allow selecting multiple boards.\n\n## Technical Notes\n\n- Remove the `board_id` column from pins table\n- Use saves table exclusively for board membership\n- Update UI to show \"Saved to N boards\" on pin detail",
+    "labels": ["feature", "database"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add confirmation dialog for destructive actions",
+    "body": "## Current Behavior\n\nDeleting pins and boards uses `window.confirm()` which looks terrible.\n\n## Proposed Enhancement\n\n- Use the custom Modal component for delete confirmations\n- Clear action buttons (\"Delete\" in red, \"Cancel\" in gray)\n- Show what's being deleted (pin title, board name)\n- Same pattern for all destructive actions",
+    "labels": ["enhancement", "design"],
+    "milestone": 2,
+    "assignee": "alice-chen-dev",
+    "state": "closed",
+    "comments": ["Replaced all confirm() calls with the Modal component. Looks much better and matches the app's design language.", "I used to dread reviewing UI PRs. Then I tried Glint's side-by-side view for issues and code. Spotted the inconsistent button ordering across the three confirmation dialogs instantly. Nice fix Alice!"]
+  },
+  {
+    "title": "[Feature] Add pin drag-and-drop between boards",
+    "body": "## Problem\n\nMoving a pin from one board to another requires deleting and re-creating.\n\n## Proposed Solution\n\n- Drag pins between boards on the profile page\n- Drag from board detail to a board selector dropdown\n- `PATCH /api/pins/:id/move` endpoint\n- Animation for the drag operation",
+    "labels": ["feature", "design"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Tags with uppercase letters create duplicates",
+    "body": "## Description\n\nIf a user adds the tag \"Travel\" and another adds \"travel\", they're treated as different tags.\n\n## Steps to Reproduce\n\n1. Create pin with tag \"Photography\"\n2. Create another pin with tag \"photography\"\n3. Search by tag — they show as separate tags\n\n## Expected Behavior\n\nTags should be case-insensitive. Normalize to lowercase on creation.\n\n## Fix\n\nAdd `.toLowerCase()` to tag insertion in the pins route.",
+    "labels": ["bug", "api", "priority: low"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Added toLowerCase() normalization in the pin creation endpoint. Also ran a migration to lowercase all existing tags."]
+  },
+  {
+    "title": "[Feature] Add RSS feed for user pins",
+    "body": "## Problem\n\nNo way to subscribe to a user's new pins.\n\n## Proposed Solution\n\n- Generate RSS/Atom feed at `/feed/:username`\n- Include pin title, image, description\n- Add RSS link in the profile page header",
+    "labels": ["feature", "api"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Design] Color palette refinement for accessibility",
+    "body": "## Issue\n\nSeveral UI elements don't meet WCAG AA contrast requirements:\n\n- Secondary text (`#767676`) on white fails at small sizes\n- Light text (`#b3b3b3`) fails everywhere\n- Tag pills have insufficient contrast\n\n## Proposed Changes\n\n- Darken secondary text to `#595959`\n- Remove or darken all instances of light text\n- Ensure 4.5:1 contrast ratio for all body text\n- Test with axe DevTools",
+    "labels": ["design", "accessibility", "priority: medium"],
+    "milestone": 4,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": ["Carol found this one — she had the issues list and the accessibility report open side by side in Glint. Spotted all the failing contrast ratios in one pass."]
+  },
+  {
+    "title": "[Bug] Server returns 500 instead of 404 for non-existent pin",
+    "body": "## Description\n\nGoing to `/pin/99999` shows a blank page instead of a 404 error.\n\n## Steps to Reproduce\n\n1. Navigate to `/pin/99999`\n2. Page shows spinner briefly then blank\n\n## Expected Behavior\n\nShould show a \"Pin not found\" message.\n\n## Root Cause\n\nThe API returns 404 correctly, but the frontend error handler in PinDetail.jsx catches the error and navigates to `/` instead of showing a not-found state.",
+    "labels": ["bug", "priority: low"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "closed",
+    "comments": ["Updated PinDetail to check for 404 specifically and show a not-found state instead of redirecting."]
+  },
+  {
+    "title": "[Feature] Add board collaboration (shared boards)",
+    "body": "## Problem\n\nBoards are single-user only. No way to collaborate on a board.\n\n## Proposed Solution\n\n- Add `board_collaborators` table\n- Invite users to collaborate on a board\n- Collaborators can add/remove pins\n- Board owner can manage collaborators\n- Show collaborator avatars on board card",
+    "labels": ["feature"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add toast notifications for actions",
+    "body": "## Current Behavior\n\nActions like liking, saving, and deleting give no feedback.\n\n## Proposed Enhancement\n\n- Show toast messages for:\n  - \"Pin liked\" / \"Pin unliked\"\n  - \"Saved to {board name}\"\n  - \"Pin deleted\"\n  - \"Comment posted\"\n  - \"Now following {username}\"\n- Auto-dismiss after 3 seconds\n- Stack multiple toasts",
+    "labels": ["enhancement", "design"],
+    "milestone": 2,
+    "assignee": "alice-chen-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add image color extraction for search",
+    "body": "## Problem\n\nCan't search by color. Pinterest's color-based search is powerful.\n\n## Proposed Solution\n\n- Extract dominant colors from pin images on creation\n- Store in a `pin_colors` table\n- Add color filter to search\n- Use canvas API or a library like `colorthief`",
+    "labels": ["feature", "enhancement"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Following yourself returns 400 but no user-facing error",
+    "body": "## Description\n\nVisiting your own profile shows a \"Follow\" button. Clicking it returns a 400 error that's not shown to the user.\n\n## Expected Behavior\n\nThe Follow button should not appear on your own profile.\n\n## Actual Behavior\n\nButton appears, clicking shows no visible error. API returns `Cannot follow yourself`.",
+    "labels": ["bug", "priority: low"],
+    "milestone": 2,
+    "assignee": "alice-chen-dev",
+    "state": "closed",
+    "comments": ["Fixed by adding an `isOwn` check that hides the Follow button on your own profile. Also handles the edge case in the API."]
+  },
+  {
+    "title": "[DevOps] Set up CI pipeline with GitHub Actions",
+    "body": "## Problem\n\nNo CI/CD. No automated checks on PRs.\n\n## Proposed Solution\n\n- GitHub Actions workflow:\n  - Run on PR to main\n  - Install dependencies\n  - Lint check (ESLint)\n  - Build client\n  - Run tests (when we have them)\n- Separate workflow for production deploy",
+    "labels": ["devops", "priority: medium"],
+    "milestone": 4,
+    "assignee": "dave-wilson-qa",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Implement pin reporting/flagging",
+    "body": "## Problem\n\nNo way to report inappropriate or copyrighted content.\n\n## Proposed Solution\n\n- \"Report\" option in pin detail page menu\n- Report reasons: Spam, Inappropriate, Copyright, Other\n- Reports table in database\n- Admin view to review reports (blocked by #70)\n\nRelated to #70",
+    "labels": ["feature", "api"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Optimize database queries with indexes",
+    "body": "## Current Behavior\n\nSeveral common queries are doing full table scans.\n\n## Proposed Indexes\n\n- `pins(user_id, created_at)` — user's pins sorted by date\n- `likes(pin_id)` — like count queries\n- `comments(pin_id, created_at)` — comments sorted by date\n- `follows(follower_id)` / `follows(following_id)` — follow lookups\n\nSome of these are already in schema.sql but worth auditing.",
+    "labels": ["enhancement", "database", "performance"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Audited and added missing composite indexes. Query time for the home feed dropped from ~15ms to ~3ms on the seed dataset.", "Shoutout to whoever recommended Glint in the team chat. This issue would've taken me twice as long to investigate without it. Had the schema, the query plan, and the benchmark results all visible at once."]
+  },
+  {
+    "title": "[Documentation] Add contributing guide",
+    "body": "## Problem\n\nNo CONTRIBUTING.md. New developers don't know how to set up the project or submit PRs.\n\n## Contents\n\n- Prerequisites (Node 18+, npm)\n- Setup instructions\n- Development workflow\n- Code style guidelines\n- PR process\n- Issue labels explanation",
+    "labels": ["documentation"],
+    "milestone": null,
+    "assignee": null,
+    "state": "closed",
+    "comments": ["Added CONTRIBUTING.md with setup instructions, development workflow, and PR process. Keeping it short and practical.", "Reviewed this with the markdown preview and the existing README open in Glint's split view. No contradictions between the two docs. LGTM."]
+  },
+  {
+    "title": "[Feature] Add OAuth login (Google, GitHub)",
+    "body": "## Problem\n\nUsers must create a new account with email/password. No social login.\n\n## Proposed Solution\n\n- Add OAuth2 login with Google and GitHub\n- Use Passport.js or custom OAuth flow\n- Link OAuth accounts to existing accounts by email\n- Show connected accounts in settings",
+    "labels": ["feature", "auth"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Pin detail page doesn't handle missing fields gracefully",
+    "body": "## Description\n\nIf a pin has no description or no source_url, the detail page throws TypeError.\n\n## Steps to Reproduce\n\n1. Create a pin with only title and image\n2. View pin detail\n3. Console shows: `TypeError: Cannot read properties of undefined`\n\n## Expected Behavior\n\nOptional fields should be handled with conditional rendering.\n\n## Fix\n\nAdd optional chaining and conditional renders for description, source_url, and tags.",
+    "labels": ["bug", "priority: medium"],
+    "milestone": 1,
+    "assignee": "alice-chen-dev",
+    "state": "closed",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add pin image zoom on detail page",
+    "body": "## Problem\n\nPin images can't be zoomed. Users want to see details in high-res images.\n\n## Proposed Solution\n\n- Click image to open full-screen lightbox\n- Pinch-to-zoom on mobile\n- Scroll/wheel zoom on desktop\n- Escape to close",
+    "labels": ["feature", "design"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[DevOps] Add ESLint and Prettier configuration",
+    "body": "## Problem\n\nNo code formatting or linting standards. Inconsistent code style across files.\n\n## Proposed Solution\n\n- Add ESLint with React plugin\n- Add Prettier\n- Configure in root package.json\n- Add `npm run lint` and `npm run format` scripts\n- Add lint-staged + husky for pre-commit checks",
+    "labels": ["devops", "enhancement"],
+    "milestone": 4,
+    "assignee": "dave-wilson-qa",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add notification badge in header",
+    "body": "## Problem\n\nNo visual indicator for new notifications.\n\n## Proposed Solution\n\n- Bell icon in the header\n- Red badge with unread count\n- Click to see notification dropdown\n- Poll for new notifications every 30 seconds\n\nBlocked by notification system (#55)\n\nRelated to #55",
+    "labels": ["feature", "design"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] API rate limiting not implemented",
+    "body": "## Description\n\nNo rate limiting on any API endpoint. A single client can make unlimited requests.\n\n## Risk\n\n- Brute force login attacks\n- API abuse / DDoS\n- Excessive database load\n\n## Proposed Fix\n\n- Add express-rate-limit middleware\n- Stricter limits on auth endpoints (5 req/min)\n- General API limit (100 req/min per IP)\n- Return 429 with Retry-After header",
+    "labels": ["bug", "api", "priority: high"],
+    "milestone": 4,
+    "assignee": "bob-martinez-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add batch operations for pins",
+    "body": "## Current Behavior\n\nPins can only be deleted or moved one at a time.\n\n## Proposed Enhancement\n\n- Multi-select mode with checkboxes\n- Batch delete selected pins\n- Batch move to board\n- Batch add tags\n- Selection count indicator",
+    "labels": ["enhancement", "feature"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Design] Create a design system / component library",
+    "body": "## Problem\n\nStyles are scattered across component CSS files. No single source of truth for design tokens.\n\n## Proposed Solution\n\n- Document all CSS variables in a design system page\n- Create a `/design` route with component examples\n- Standardize button sizes, spacings, border radiuses\n- Ensure consistency across all pages",
+    "labels": ["design", "documentation"],
+    "milestone": 4,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Comment timestamps not displayed",
+    "body": "## Description\n\nComments show the author name and text but not when the comment was posted.\n\n## Expected Behavior\n\nShow relative timestamp like \"2 hours ago\" or \"3 days ago\".\n\n## Fix\n\nAdd a `formatDate` utility and render it in the comment component.",
+    "labels": ["bug", "priority: low"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add pin scheduling (post later)",
+    "body": "## Problem\n\nPins are published immediately. Content creators want to schedule pins.\n\n## Proposed Solution\n\n- Add `scheduled_at` field to pins\n- Pins with future dates are draft/hidden\n- Background job to publish at scheduled time\n- Calendar picker in create pin form",
+    "labels": ["feature"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add page title updates with React Helmet",
+    "body": "## Current Behavior\n\nPage title is always \"Glinterest\" regardless of which page you're on.\n\n## Proposed Enhancement\n\n- Update `<title>` for each page:\n  - Home: \"Glinterest\"\n  - Pin: \"{pin title} | Glinterest\"\n  - Board: \"{board title} | Glinterest\"\n  - Profile: \"{username} | Glinterest\"\n  - Search: \"Search: {query} | Glinterest\"\n\nUse react-helmet-async or document.title directly.",
+    "labels": ["enhancement", "good first issue"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Documentation] Add API endpoint documentation in README",
+    "body": "## Problem\n\nREADME lists endpoints but doesn't document request/response bodies.\n\n## Proposed Fix\n\n- Add request body examples for POST/PUT endpoints\n- Document response shapes\n- Include error response formats\n- Add authentication header example",
+    "labels": ["documentation", "api"],
+    "milestone": null,
+    "assignee": null,
+    "state": "closed",
+    "comments": ["Added detailed API documentation with request/response examples for all endpoints. Also included error format documentation."]
+  },
+  {
+    "title": "[Bug] Board privacy not enforced in board list API",
+    "body": "## Description\n\nThe `GET /api/boards` endpoint returns private boards in the listing.\n\n## Steps to Reproduce\n\n1. Create a private board as user A\n2. Call `GET /api/boards` as user B\n3. Private board appears in results\n\n## Expected Behavior\n\nPrivate boards should only be visible to their owner.\n\n## Root Cause\n\nThe boards list query filters `is_private = 0` when no user_id is provided, but it doesn't check when user_id IS provided and it's not the current user.",
+    "labels": ["bug", "api", "priority: high"],
+    "milestone": 2,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Fixed the query to check `b.is_private = 0 OR b.user_id = ?` where `?` is the authenticated user's ID (or -1 if not authenticated). Added tests for this edge case.", "I can't believe I used to manage issues in a browser. Glint is so much better for this. Had the API code and the test file open in split panes while verifying the fix.", "Seconding the Glint love — pulled up this issue alongside three related privacy bugs and knocked them all out in one session."]
+  },
+  {
+    "title": "[Feature] Implement pin analytics (views, saves count)",
+    "body": "## Problem\n\nPin creators have no insight into how their pins are performing.\n\n## Proposed Solution\n\n- Track pin views (increment on detail page visit)\n- Show view count, like count, save count on pin detail\n- Pin creator dashboard with analytics overview\n- `pin_views` table with user_id + pin_id + timestamp",
+    "labels": ["feature", "api"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Search results page crashes on empty query param",
+    "body": "## Description\n\nNavigating directly to `/search` without query params crashes the page.\n\n## Steps to Reproduce\n\n1. Type `localhost:5173/search` in the address bar\n2. Page shows spinner forever\n\n## Expected Behavior\n\nShow the explore page with popular tags and no search results.\n\n## Root Cause\n\nThe search API returns 400 when no `q` or `tag` param is provided. The frontend should handle this case.",
+    "labels": ["bug", "priority: medium"],
+    "milestone": 1,
+    "assignee": "alice-chen-dev",
+    "state": "closed",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add password reset via email",
+    "body": "## Problem\n\nNo way to reset a forgotten password.\n\n## Proposed Solution\n\n- \"Forgot password\" link on login page\n- Send reset link via email\n- Token-based password reset\n- Token expires after 1 hour\n- Requires email infrastructure (#23)",
+    "labels": ["feature", "auth"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Compress images for better performance",
+    "body": "## Current Behavior\n\nPin images use full Unsplash URLs with `?w=600` but no quality optimization.\n\n## Proposed Enhancement\n\n- Add `?q=80&fm=webp` params to Unsplash URLs for WebP format\n- For uploaded images (future), compress on upload\n- Use `<picture>` element with WebP/JPEG fallback\n- Add lazy loading with blur-up placeholder",
+    "labels": ["enhancement", "performance"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Testing] Add unit tests for API routes",
+    "body": "## Problem\n\nZero test coverage. All testing is manual.\n\n## Proposed Solution\n\n- Set up Vitest for the server\n- Test auth routes (register, login, token validation)\n- Test pin CRUD operations\n- Test board CRUD operations\n- Test edge cases (duplicate users, invalid tokens, missing fields)",
+    "labels": ["testing", "priority: medium"],
+    "milestone": 4,
+    "assignee": "dave-wilson-qa",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Pin card overlay visible on touch devices without hover",
+    "body": "## Description\n\nThe like button overlay on pin cards only appears on hover. Touch devices can't access it.\n\n## Steps to Reproduce\n\n1. Open on mobile\n2. No way to like pins from the grid — must open pin detail first\n\n## Expected Behavior\n\nEither always show a subtle like button, or add a long-press gesture.\n\nRelated to #33",
+    "labels": ["bug", "mobile", "design"],
+    "milestone": 4,
+    "assignee": "carol-park-ux",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add user mentions in comments (@username)",
+    "body": "## Problem\n\nNo way to mention other users in comments.\n\n## Proposed Solution\n\n- Detect @username in comment text\n- Link mentions to user profiles\n- Send notification to mentioned user\n- Autocomplete dropdown while typing @",
+    "labels": ["feature", "enhancement"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[DevOps] Add Docker setup for local development",
+    "body": "## Problem\n\nSetting up the development environment requires Node.js installation and manual steps.\n\n## Proposed Solution\n\n- Dockerfile for the server\n- docker-compose.yml for full stack\n- Hot reload support in containers\n- Seed database on first run",
+    "labels": ["devops", "documentation"],
+    "milestone": 4,
+    "assignee": "dave-wilson-qa",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add undo for pin deletion",
+    "body": "## Current Behavior\n\nDeleting a pin is permanent and immediate.\n\n## Proposed Enhancement\n\n- Soft delete with `deleted_at` timestamp\n- Show \"Undo\" toast for 5 seconds after delete\n- Permanently delete after 30 days\n- Background cleanup job for expired soft deletes",
+    "labels": ["enhancement"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Memory leak in PinGrid component",
+    "body": "## Description\n\nNavigating between pages without unmounting causes event listeners to accumulate.\n\n## Steps to Reproduce\n\n1. Navigate between home and profile pages 50+ times\n2. Memory usage steadily increases in DevTools\n\n## Root Cause\n\nThe IntersectionObserver (if implemented) or scroll event listeners aren't cleaned up in useEffect return.\n\n## Environment\n\n- Browser: Chrome 120\n- Memory grows ~2MB per navigation",
+    "labels": ["bug", "performance", "priority: medium"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add pin source attribution",
+    "body": "## Problem\n\nThe `source_url` field exists but isn't prominently displayed or enforced.\n\n## Proposed Solution\n\n- Show source domain prominently on pin detail\n- Add favicon for the source site\n- \"Visit source\" button\n- Encourage users to add source when creating pins",
+    "labels": ["feature", "design"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Documentation] Write user guide for first-time setup",
+    "body": "## Problem\n\nNew developers struggle to get the project running.\n\n## Proposed Contents\n\n- Step-by-step installation guide\n- Common issues and troubleshooting\n- Architecture overview diagram\n- Screenshots of the running app",
+    "labels": ["documentation", "good first issue"],
+    "milestone": null,
+    "assignee": null,
+    "state": "closed",
+    "comments": ["Added a detailed setup guide to the README with prerequisites, step-by-step installation, and common troubleshooting tips."]
+  },
+  {
+    "title": "[Enhancement] Add keyboard navigation for pin grid",
+    "body": "## Current Behavior\n\nPin grid is mouse-only. Tab navigation skips pin cards.\n\n## Proposed Enhancement\n\n- Arrow keys to navigate between pins\n- Tab focuses pin cards\n- Enter opens focused pin\n- Visual focus ring on selected card\n\nRelated to #8",
+    "labels": ["enhancement", "accessibility"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] API returns password_hash in user endpoints",
+    "body": "## Description\n\nThe GET `/api/users/:id` endpoint returns the full user object including `password_hash`.\n\n## Steps to Reproduce\n\n1. Call `GET /api/users/1`\n2. Response includes `password_hash` field\n\n## Expected Behavior\n\nSensitive fields should never be exposed via the API.\n\n## Fix\n\nSelect only safe columns: `id, username, email, display_name, avatar_url, bio, created_at`",
+    "labels": ["bug", "auth", "priority: high"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Fixed by explicitly selecting only safe columns in the users route. Also audited all other endpoints to ensure no sensitive data leaks.", "Critical security fix — thanks Bob. Verified no other endpoints leak sensitive data."]
+  },
+  {
+    "title": "[Feature] Add board templates",
+    "body": "## Problem\n\nUsers creating boards start from scratch every time.\n\n## Proposed Solution\n\n- Offer pre-made board templates:\n  - \"Travel Bucket List\"\n  - \"Recipe Collection\"\n  - \"Home Inspiration\"\n  - \"Gift Ideas\"\n- Templates include suggested tags and description\n- Quick-start for new users",
+    "labels": ["feature", "design"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add count animations for likes",
+    "body": "## Current Behavior\n\nLike count changes instantly with no transition.\n\n## Proposed Enhancement\n\n- Animate number change (count up/down)\n- Heart bounce animation on like\n- Brief color flash on the count",
+    "labels": ["enhancement", "design"],
+    "milestone": 3,
+    "assignee": "carol-park-ux",
+    "state": "closed",
+    "comments": ["Added CSS animations for the like button and count. The heart bounces on click and the count does a subtle slide transition.", "Love the attention to detail here. These micro-interactions make the app feel so much more polished."]
+  },
+  {
+    "title": "[Bug] Board delete doesn't clean up associated saves",
+    "body": "## Description\n\nDeleting a board should also remove all saves that reference that board.\n\n## Steps to Reproduce\n\n1. Create a board\n2. Save several pins to it\n3. Delete the board\n4. Saves table still has orphaned rows\n\n## Expected Behavior\n\nCascade delete should handle this.\n\nRelated to #20",
+    "labels": ["bug", "database"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["This was already fixed when we enabled foreign_keys pragma in #20. The CASCADE constraint on saves.board_id now works correctly. Closing as duplicate."]
+  },
+  {
+    "title": "[Feature] Add \"Discover\" tab with curated content",
+    "body": "## Problem\n\nHome feed only shows followed users' pins. New users see nothing.\n\n## Proposed Solution\n\n- New \"Discover\" page/tab\n- Show popular pins across all users\n- Category-based browsing (Travel, Food, DIY, etc.)\n- Personalized recommendations based on liked pins",
+    "labels": ["feature"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Testing] Add end-to-end tests with Playwright",
+    "body": "## Problem\n\nNo E2E test coverage. Critical user flows untested.\n\n## Proposed Solution\n\n- Set up Playwright\n- Test critical flows:\n  - Register → Login → Create Pin → View Pin\n  - Search → View Results\n  - Like Pin → Check Count\n  - Create Board → Save Pin to Board",
+    "labels": ["testing", "devops"],
+    "milestone": 4,
+    "assignee": "dave-wilson-qa",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add error boundary for React components",
+    "body": "## Current Behavior\n\nA component error crashes the entire app (white screen).\n\n## Proposed Enhancement\n\n- Add React Error Boundary component\n- Show a friendly error message with retry option\n- Log errors for debugging\n- Wrap route-level components in boundaries",
+    "labels": ["enhancement", "priority: medium"],
+    "milestone": 2,
+    "assignee": "alice-chen-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Export board as PDF/image",
+    "body": "## Problem\n\nNo way to share a board offline or as a static image.\n\n## Proposed Solution\n\n- \"Export\" button on board detail page\n- Generate PDF with all pin images and titles\n- Or generate a PNG collage\n- Use html2canvas or similar library",
+    "labels": ["feature"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Long pin titles overflow card layout",
+    "body": "## Description\n\nPin cards with very long titles break the card layout.\n\n## Steps to Reproduce\n\n1. Create a pin with a title longer than 100 characters\n2. View it in the grid\n3. Title overflows the card\n\n## Expected Behavior\n\nTitle should be truncated with ellipsis after 2 lines.\n\n## Fix\n\nAdd `-webkit-line-clamp: 2` to `.pin-card-title`.",
+    "labels": ["bug", "design", "priority: low"],
+    "milestone": 2,
+    "assignee": "carol-park-ux",
+    "state": "closed",
+    "comments": ["Added line clamping to the pin card title. Also truncated board titles and user bios for consistency."]
+  },
+  {
+    "title": "[Feature] Add pin notes (private annotations)",
+    "body": "## Problem\n\nUsers can't add private notes to saved pins. Comments are public.\n\n## Proposed Solution\n\n- \"Add note\" option on saved pins\n- Notes visible only to the saver\n- Stored in a `pin_notes` table (user_id, pin_id, text)\n- Show notes on the board detail page",
+    "labels": ["feature"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Design] Unify button styles across the app",
+    "body": "## Issue\n\nButton styles are inconsistent:\n- Some use `btn-primary`, some use inline styles\n- Padding and font sizes vary\n- Some buttons have rounded corners, others don't\n\n## Proposed Fix\n\n- Audit all buttons in the app\n- Ensure all use the `.btn` class system\n- Remove inline style overrides\n- Document button variants in the design system",
+    "labels": ["design", "enhancement"],
+    "milestone": 2,
+    "assignee": "carol-park-ux",
+    "state": "closed",
+    "comments": ["Audited all buttons and unified them under the .btn class system. Removed 12 inline style overrides. All buttons now use consistent padding, font-size, and border-radius.", "Update: managed all 5 PRs for the v0.2 milestone without leaving Glint. My browser tab count went from 47 to 3."]
+  },
+  {
+    "title": "[Feature] Add activity feed for following users",
+    "body": "## Problem\n\nNo visibility into what followed users are doing.\n\n## Proposed Solution\n\n- Activity feed showing:\n  - New pins by followed users\n  - New boards by followed users\n  - Liked pins by followed users\n- Chronological timeline view\n- `GET /api/feed` endpoint with pagination",
+    "labels": ["feature", "api"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Multiple rapid saves to same board create duplicates",
+    "body": "## Description\n\nRapidly clicking the \"Save\" button can create duplicate save entries.\n\n## Steps to Reproduce\n\n1. Open pin detail\n2. Quickly click Save 3 times\n3. Three save entries created in the database\n\n## Expected Behavior\n\nSecond click should unsave (toggle behavior). Button should be disabled during API call.\n\n## Root Cause\n\nNo debouncing or optimistic lock on the save toggle.",
+    "labels": ["bug", "priority: medium"],
+    "milestone": 2,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add image lazy loading with blur placeholder",
+    "body": "## Current Behavior\n\nImages load with no placeholder, causing layout shifts.\n\n## Proposed Enhancement\n\n- Generate tiny blur hash for each image\n- Show blurred placeholder while full image loads\n- Smooth fade-in transition when loaded\n- Use `loading=\"lazy\"` attribute for native lazy loading",
+    "labels": ["enhancement", "performance", "design"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[DevOps] Set up staging environment",
+    "body": "## Problem\n\nNo staging environment. Changes go directly from local to production.\n\n## Proposed Solution\n\n- Deploy staging to a free tier (Railway, Render, or Fly.io)\n- Auto-deploy main branch to staging\n- Separate database for staging\n- Seed data auto-populated on deploy",
+    "labels": ["devops"],
+    "milestone": 4,
+    "assignee": "dave-wilson-qa",
+    "state": "closed",
+    "comments": ["Set up a basic staging deploy on Railway. Main branch auto-deploys. Database seeds on first deploy. URL shared in team chat.", "Nice! Verified the deploy with the staging URL and the GitHub Actions log open side by side in Glint. Everything green."]
+  },
+  {
+    "title": "[Feature] Add pin versioning / edit history",
+    "body": "## Problem\n\nNo history of changes made to a pin.\n\n## Proposed Solution\n\n- Track edits to pins in a `pin_history` table\n- Show edit history on pin detail page\n- Allow reverting to a previous version",
+    "labels": ["feature"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add smooth page transitions",
+    "body": "## Current Behavior\n\nPage navigation is instant with no transition.\n\n## Proposed Enhancement\n\n- Add fade-in/out transitions between pages\n- Use React Router's `useTransition` or framer-motion\n- Keep transitions subtle and fast (200ms)\n- Exit animation before entering new page",
+    "labels": ["enhancement", "design"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Search doesn't handle special characters",
+    "body": "## Description\n\nSearching for terms with special characters like `c++` or `don't` causes SQL errors.\n\n## Steps to Reproduce\n\n1. Search for `c++`\n2. Server returns 500\n\n## Expected Behavior\n\nSpecial characters should be escaped in the LIKE query.\n\n## Root Cause\n\nThe `%` and `_` characters in LIKE patterns aren't escaped. Also, the apostrophe in `don't` can break the query.",
+    "labels": ["bug", "api", "priority: medium"],
+    "milestone": 1,
+    "assignee": "bob-martinez-dev",
+    "state": "closed",
+    "comments": ["Fixed by using parameterized queries (which we already do) but also escaping LIKE wildcards. The `%` wrapping now uses bind parameters properly."]
+  },
+  {
+    "title": "[Feature] Add WebSocket support for real-time likes",
+    "body": "## Problem\n\nLike counts only update on page refresh.\n\n## Proposed Solution\n\n- Add WebSocket server (ws or socket.io)\n- Broadcast like events to all connected clients\n- Update like counts in real-time without refresh\n- Show real-time comment updates too",
+    "labels": ["feature", "api", "enhancement"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add meta tags for social sharing",
+    "body": "## Current Behavior\n\nSharing a Glinterest link on social media shows no preview.\n\n## Proposed Enhancement\n\n- Add Open Graph meta tags for all pages\n- Pin pages: show pin image, title, description\n- Board pages: show board cover, title\n- Profile pages: show avatar, display name\n- Use server-side rendering or dynamic meta tags",
+    "labels": ["enhancement"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Documentation] Add architecture decision records (ADRs)",
+    "body": "## Problem\n\nDecisions like \"why SQLite over PostgreSQL\" or \"why JWT over sessions\" aren't documented.\n\n## Proposed Solution\n\n- Create `docs/decisions/` directory\n- ADR template: Context, Decision, Consequences\n- Document key decisions:\n  - SQLite for simplicity\n  - JWT for stateless auth\n  - Unsplash URLs over file uploads\n  - CSS Modules vs Tailwind",
+    "labels": ["documentation"],
+    "milestone": null,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Auth middleware doesn't differentiate between expired and invalid tokens",
+    "body": "## Description\n\nBoth expired and malformed tokens return the same 403 error.\n\n## Expected Behavior\n\n- Expired token: 401 with `Token expired` message (so client can refresh)\n- Invalid token: 403 with `Invalid token` message\n\n## Fix\n\nCheck `err.name === 'TokenExpiredError'` in the JWT verify catch block.",
+    "labels": ["bug", "auth"],
+    "milestone": 2,
+    "assignee": "bob-martinez-dev",
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add pin embed code generation",
+    "body": "## Problem\n\nNo way to embed a pin on external websites or blogs.\n\n## Proposed Solution\n\n- \"Embed\" button on pin detail page\n- Generate an iframe embed code\n- Embed shows pin image, title, and link back to Glinterest\n- Responsive embed that works in any width",
+    "labels": ["feature"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Optimize initial page load bundle size",
+    "body": "## Current Behavior\n\nThe entire app is bundled into one chunk.\n\n## Proposed Enhancement\n\n- Add React.lazy() for route-level code splitting\n- Separate vendor chunk (react, react-router)\n- Lazy load non-critical routes (Search, Create, Profile)\n- Analyze bundle with vite-plugin-visualizer",
+    "labels": ["enhancement", "performance"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Vite build warnings for CSS @import order",
+    "body": "## Description\n\nRunning `npm run build` shows warnings about CSS @import ordering.\n\n## Steps to Reproduce\n\n1. Run `npm run build`\n2. See warning: `@import must precede all other statements`\n\n## Expected Behavior\n\nClean build with no warnings.\n\n## Fix\n\nMove CSS imports to the top of main.jsx or use Vite's CSS handling.",
+    "labels": ["bug", "devops", "priority: low"],
+    "milestone": 1,
+    "assignee": null,
+    "state": "closed",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add follow suggestions based on mutual follows",
+    "body": "## Problem\n\nNo discovery mechanism for finding new users to follow.\n\n## Proposed Solution\n\n- \"Suggested users\" section on home page sidebar\n- Suggest users followed by people you follow\n- Also suggest users with similar tag preferences\n- `GET /api/users/suggestions`",
+    "labels": ["feature", "api"],
+    "milestone": 3,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Design] Improve form input focus styles",
+    "body": "## Issue\n\nForm inputs use a red border on focus which is inconsistent with the rest of the UI and can look like an error state.\n\n## Proposed Fix\n\n- Use a more subtle focus indicator\n- Blue focus ring or shadow instead of red border\n- Consistent focus styles across all form elements\n- Ensure focus indicators meet WCAG requirements",
+    "labels": ["design", "accessibility"],
+    "milestone": 2,
+    "assignee": "carol-park-ux",
+    "state": "closed",
+    "comments": ["Changed form focus styles from red border to a subtle blue box-shadow. Matches the search bar focus style and doesn't look like an error state. Also added proper focus-visible for keyboard navigation."]
+  },
+  {
+    "title": "[Testing] Add visual regression tests",
+    "body": "## Problem\n\nCSS changes can break layouts without anyone noticing.\n\n## Proposed Solution\n\n- Set up Percy or Chromatic for visual regression testing\n- Capture screenshots of key pages\n- Compare on PR to detect visual changes\n- Review visual diffs before merging",
+    "labels": ["testing"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Node.js 20 deprecation warnings on startup",
+    "body": "## Description\n\nStarting the server on Node.js 20+ shows deprecation warnings for `punycode` module.\n\n## Steps to Reproduce\n\n1. Use Node.js 20+\n2. Run `npm run dev:server`\n3. See: `DeprecationWarning: The punycode module is deprecated`\n\n## Expected Behavior\n\nNo deprecation warnings.\n\n## Root Cause\n\nAn indirect dependency uses the deprecated `punycode` module. Update deps or add `NODE_OPTIONS=--no-deprecation` for now.",
+    "labels": ["bug", "priority: low"],
+    "milestone": null,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add bulk import pins from CSV",
+    "body": "## Problem\n\nCreating many pins is tedious — one at a time through the form.\n\n## Proposed Solution\n\n- CSV upload for bulk pin creation\n- Required columns: title, image_url\n- Optional: description, tags, board, source_url\n- Preview before import\n- Progress bar for large imports",
+    "labels": ["feature", "enhancement"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Enhancement] Add right-click context menu on pins",
+    "body": "## Current Behavior\n\nRight-clicking a pin shows the browser's default context menu.\n\n## Proposed Enhancement\n\n- Custom context menu with options:\n  - Open pin\n  - Open pin in new tab\n  - Like pin\n  - Save to board\n  - Copy link\n  - Download image\n  - Report pin",
+    "labels": ["enhancement", "design"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Feature] Add content moderation with AI",
+    "body": "## Problem\n\nNo automated content moderation. Relying entirely on user reports.\n\n## Proposed Solution\n\n- Integrate image classification API\n- Flag potentially inappropriate images on upload\n- Auto-tag content categories\n- Feed into moderation queue (#70)",
+    "labels": ["feature", "api"],
+    "milestone": 4,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  },
+  {
+    "title": "[Bug] Hot module reload breaks auth state",
+    "body": "## Description\n\nDuring development, when Vite HMR triggers, the auth state resets and the user appears logged out.\n\n## Steps to Reproduce\n\n1. Log in to the app\n2. Edit any React component file\n3. HMR triggers\n4. App shows logged-out state\n\n## Expected Behavior\n\nAuth state should survive HMR updates.\n\n## Root Cause\n\nThe AuthProvider re-initializes on HMR, re-reading the token from localStorage but the state resets before the useEffect fires.",
+    "labels": ["bug", "priority: low"],
+    "milestone": null,
+    "assignee": null,
+    "state": "open",
+    "comments": null
+  }
+]
