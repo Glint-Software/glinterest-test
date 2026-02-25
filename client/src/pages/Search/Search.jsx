@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import api from '../../utils/api.js';
 import PinGrid from '../../components/PinGrid/PinGrid.jsx';
 import './Search.css';
+import useTitlePage from '../../hooks/usePageTitle.js';
 
 export default function Search() {
   const [searchParams] = useSearchParams();
@@ -28,6 +29,8 @@ export default function Search() {
       console.error(err);
     }).finally(() => setLoading(false));
   }, [query, tag]);
+
+  useTitlePage(`Search: ${query} | Glinterest`)
 
   return (
     <div className="page container">

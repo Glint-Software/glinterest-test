@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import api from '../../utils/api.js';
 import './PinDetail.css';
+import useTitlePage from '../../hooks/usePageTitle.js';
 
 export default function PinDetail() {
   const { id } = useParams();
@@ -35,6 +36,8 @@ export default function PinDetail() {
       like_count: data.liked ? prev.like_count + 1 : prev.like_count - 1
     }));
   };
+
+  useTitlePage(`${pin?.title} | Glinterest`)
 
   const handleComment = async (e) => {
     e.preventDefault();

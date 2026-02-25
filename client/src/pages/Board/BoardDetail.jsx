@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import api from '../../utils/api.js';
 import PinGrid from '../../components/PinGrid/PinGrid.jsx';
 import './BoardDetail.css';
+import useTitlePage from '../../hooks/usePageTitle.js';
 
 export default function BoardDetail() {
   const { id } = useParams();
@@ -21,6 +22,8 @@ export default function BoardDetail() {
   };
 
   useEffect(() => { fetchBoard(); }, [id]);
+
+  useTitlePage(`${board?.title} | Glinterest`)
 
   if (loading) return <div className="spinner" />;
   if (!board) return <div className="empty-state"><h3>Board not found</h3></div>;

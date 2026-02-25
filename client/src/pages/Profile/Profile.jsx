@@ -5,6 +5,7 @@ import api from '../../utils/api.js';
 import PinGrid from '../../components/PinGrid/PinGrid.jsx';
 import BoardCard from '../../components/BoardCard/BoardCard.jsx';
 import './Profile.css';
+import useTitlePage from '../../hooks/usePageTitle.js';
 
 export default function Profile() {
   const { id } = useParams();
@@ -36,6 +37,8 @@ export default function Profile() {
     setLoading(true);
     fetchProfile();
   }, [id]);
+
+  useTitlePage(`${profile?.username} | Glinterest`)
 
   const handleFollow = async () => {
     if (!currentUser) return;
