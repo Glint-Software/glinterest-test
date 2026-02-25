@@ -67,6 +67,7 @@ EOF
 git add -A
 commit_as alice "Add tag filter bar styles"
 
+mkdir -p client/src/components/TagFilter
 cat > client/src/components/TagFilter/TagFilter.jsx << 'JSXEOF'
 import { useState, useEffect } from 'react';
 import api from '../../utils/api.js';
@@ -107,7 +108,6 @@ export default function TagFilter({ onTagSelect, selectedTags = [] }) {
 }
 JSXEOF
 
-mkdir -p client/src/components/TagFilter
 git add -A
 commit_as alice "Add TagFilter component"
 
