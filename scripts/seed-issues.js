@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REPO = 'Glint-Software/glinterest';
+const REPO = process.env.GLINTEREST_REPO || 'Glint-Software/glinterest';
 
 const dryRun = process.argv.includes('--dry-run');
 const startArg = process.argv.find(a => a.startsWith('--start='));
@@ -94,7 +94,19 @@ async function createIssues() {
       }
 
       // Use body file to avoid shell escaping issues
-      const issueUrl = ghWithBodyFile(cmd, issue.body);
+      let issueUrl;
+      try {
+        issueUrl = ghWithBodyFile(cmd, issue.body);
+      } catch (e) {
+        // If assignee fails (not a collaborator yet), retry without assignee
+        if (issue.assignee && e.message.includes('not found')) {
+          console.log(`  Assignee "${issue.assignee}" not available, creating without assignee...`);
+          let retryCmd = cmd.replace(` --assignee "${issue.assignee}"`, '');
+          issueUrl = ghWithBodyFile(retryCmd, issue.body);
+        } else {
+          throw e;
+        }
+      }
       const issueNumber = issueUrl.match(/\/(\d+)$/)?.[1];
       console.log(`  Created: #${issueNumber}`);
 

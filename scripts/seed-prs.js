@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Creates GitHub PRs for the glinterest repo.
-// Usage: node scripts/seed-prs.js
+// Usage: node scripts/seed-prs.js [--dry-run] [--start N]
 // Requires: gh CLI authenticated, branches must exist and be pushed
 //
 // This script expects the following branches to exist (created during the
@@ -22,15 +22,38 @@
 //   - feature/redis-caching (closed, not merged)
 
 import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync, mkdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { tmpdir } from 'os';
 
-const REPO = 'Glint-Software/glinterest';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const REPO = process.env.GLINTEREST_REPO || 'Glint-Software/glinterest';
+const tmpDir = join(tmpdir(), 'glinterest-seed-prs');
+mkdirSync(tmpDir, { recursive: true });
 
 const prs = [
   // Merged PRs
   {
     branch: 'feature/auth',
     title: 'Add JWT authentication with login and registration',
-    body: `## Summary\n\n- Implement JWT-based auth system\n- Add register and login API endpoints\n- Add auth middleware for protected routes\n- Create login and registration UI pages\n\nCloses #2\n\n## Test plan\n\n- [x] Register new user\n- [x] Login with valid credentials\n- [x] Reject invalid credentials\n- [x] Protected routes require auth token`,
+    body: `## Summary
+
+- Implement JWT-based auth system
+- Add register and login API endpoints
+- Add auth middleware for protected routes
+- Create login and registration UI pages
+
+Closes #2
+
+## Test plan
+
+- [x] Register new user
+- [x] Login with valid credentials
+- [x] Reject invalid credentials
+- [x] Protected routes require auth token`,
     labels: ['auth', 'api'],
     reviewers: ['alice-chen-dev'],
     state: 'merged',
@@ -38,7 +61,21 @@ const prs = [
   {
     branch: 'feature/pin-grid',
     title: 'Implement masonry grid layout for pin feed',
-    body: `## Summary\n\n- Add PinCard component with hover effects\n- Implement CSS masonry grid layout\n- Add lazy loading for images\n- Responsive breakpoints for mobile/tablet/desktop\n\nCloses #5\nRelated to #8\n\n## Test plan\n\n- [x] Grid renders correctly at all breakpoints\n- [x] Images lazy load on scroll\n- [x] Hover overlay shows like button`,
+    body: `## Summary
+
+- Add PinCard component with hover effects
+- Implement CSS masonry grid layout
+- Add lazy loading for images
+- Responsive breakpoints for mobile/tablet/desktop
+
+Closes #5
+Related to #8
+
+## Test plan
+
+- [x] Grid renders correctly at all breakpoints
+- [x] Images lazy load on scroll
+- [x] Hover overlay shows like button`,
     labels: ['feature', 'design'],
     reviewers: ['carol-park-ux'],
     state: 'merged',
@@ -46,7 +83,20 @@ const prs = [
   {
     branch: 'feature/search',
     title: 'Add search by title, description, and tags',
-    body: `## Summary\n\n- Add search API endpoint with LIKE queries\n- Add tag-based search\n- Create search results page with tag pills\n- Show popular tags\n\nCloses #15\n\n## Test plan\n\n- [x] Search by title returns results\n- [x] Search by tag returns filtered results\n- [x] Empty query shows helpful state`,
+    body: `## Summary
+
+- Add search API endpoint with LIKE queries
+- Add tag-based search
+- Create search results page with tag pills
+- Show popular tags
+
+Closes #15
+
+## Test plan
+
+- [x] Search by title returns results
+- [x] Search by tag returns filtered results
+- [x] Empty query shows helpful state`,
     labels: ['feature', 'api'],
     reviewers: ['alice-chen-dev'],
     state: 'merged',
@@ -54,7 +104,20 @@ const prs = [
   {
     branch: 'feature/comments',
     title: 'Add comment system for pins',
-    body: `## Summary\n\n- Comments API with CRUD endpoints\n- Comment list on pin detail page\n- Add comment form for authenticated users\n\nCloses #22\n\n## Test plan\n\n- [x] Add comment to pin\n- [x] View comments on pin detail\n- [x] Delete own comment\n- [x] Anonymous users see comments but can't post`,
+    body: `## Summary
+
+- Comments API with CRUD endpoints
+- Comment list on pin detail page
+- Add comment form for authenticated users
+
+Closes #22
+
+## Test plan
+
+- [x] Add comment to pin
+- [x] View comments on pin detail
+- [x] Delete own comment
+- [x] Anonymous users see comments but can't post`,
     labels: ['feature', 'api'],
     reviewers: ['dave-wilson-qa'],
     state: 'merged',
@@ -62,7 +125,21 @@ const prs = [
   {
     branch: 'feature/boards-api',
     title: 'Implement boards CRUD and board detail page',
-    body: `## Summary\n\n- Boards API: create, read, update, delete\n- Board detail page showing board pins\n- Save pins to boards\n- Private board support\n\nCloses #10\n\n## Test plan\n\n- [x] Create new board\n- [x] View board with pins\n- [x] Save pin to board\n- [x] Private boards hidden from other users`,
+    body: `## Summary
+
+- Boards API: create, read, update, delete
+- Board detail page showing board pins
+- Save pins to boards
+- Private board support
+
+Closes #10
+
+## Test plan
+
+- [x] Create new board
+- [x] View board with pins
+- [x] Save pin to board
+- [x] Private boards hidden from other users`,
     labels: ['feature', 'api'],
     reviewers: ['alice-chen-dev'],
     state: 'merged',
@@ -70,7 +147,21 @@ const prs = [
   {
     branch: 'feature/user-profiles',
     title: 'Add user profile pages with stats',
-    body: `## Summary\n\n- User profile page with avatar, bio, stats\n- Tabs for pins and boards\n- Follow/unfollow button\n- Follower and following counts\n\nCloses #18\n\n## Test plan\n\n- [x] View own profile\n- [x] View other user's profile\n- [x] Follow/unfollow works\n- [x] Stats update correctly`,
+    body: `## Summary
+
+- User profile page with avatar, bio, stats
+- Tabs for pins and boards
+- Follow/unfollow button
+- Follower and following counts
+
+Closes #18
+
+## Test plan
+
+- [x] View own profile
+- [x] View other user's profile
+- [x] Follow/unfollow works
+- [x] Stats update correctly`,
     labels: ['feature', 'design'],
     reviewers: ['carol-park-ux'],
     state: 'merged',
@@ -78,7 +169,21 @@ const prs = [
   {
     branch: 'feature/likes-saves',
     title: 'Add like and save functionality',
-    body: `## Summary\n\n- Toggle like on pins\n- Save pins to boards\n- Like count display on cards\n- Liked state persists across page loads\n\nCloses #25\n\n## Test plan\n\n- [x] Like/unlike pins\n- [x] Like count updates in real-time\n- [x] Save pin to board\n- [x] Heart icon shows liked state`,
+    body: `## Summary
+
+- Toggle like on pins
+- Save pins to boards
+- Like count display on cards
+- Liked state persists across page loads
+
+Closes #25
+
+## Test plan
+
+- [x] Like/unlike pins
+- [x] Like count updates in real-time
+- [x] Save pin to board
+- [x] Heart icon shows liked state`,
     labels: ['feature'],
     reviewers: ['bob-martinez-dev'],
     state: 'merged',
@@ -86,7 +191,22 @@ const prs = [
   {
     branch: 'feature/responsive-layout',
     title: 'Make layout fully responsive for mobile',
-    body: `## Summary\n\n- Responsive header with collapsible navigation\n- Mobile-friendly masonry grid (2 columns)\n- Touch-friendly buttons and tap targets\n- Pin detail page stacks vertically on mobile\n\nCloses #30\nRelated to #35\n\n## Test plan\n\n- [x] Test on 375px viewport (iPhone SE)\n- [x] Test on 768px viewport (iPad)\n- [x] Test on 1440px viewport (desktop)\n- [x] No horizontal scroll at any breakpoint`,
+    body: `## Summary
+
+- Responsive header with collapsible navigation
+- Mobile-friendly masonry grid (2 columns)
+- Touch-friendly buttons and tap targets
+- Pin detail page stacks vertically on mobile
+
+Closes #30
+Related to #35
+
+## Test plan
+
+- [x] Test on 375px viewport (iPhone SE)
+- [x] Test on 768px viewport (iPad)
+- [x] Test on 1440px viewport (desktop)
+- [x] No horizontal scroll at any breakpoint`,
     labels: ['design', 'mobile'],
     reviewers: ['carol-park-ux'],
     state: 'merged',
@@ -96,7 +216,21 @@ const prs = [
   {
     branch: 'feature/tag-filtering',
     title: 'Add tag filtering to home feed',
-    body: `## Summary\n\n- Add tag filter bar above the pin grid\n- Filter pins by clicking tag pills\n- Multiple tag selection support\n- Clear all filters button\n\nRelated to #15, #42\n\n## Test plan\n\n- [ ] Click tag to filter pins\n- [ ] Multiple tags narrow results\n- [ ] Clear filters shows all pins\n- [ ] URL updates with tag params`,
+    body: `## Summary
+
+- Add tag filter bar above the pin grid
+- Filter pins by clicking tag pills
+- Multiple tag selection support
+- Clear all filters button
+
+Related to #15, #42
+
+## Test plan
+
+- [ ] Click tag to filter pins
+- [ ] Multiple tags narrow results
+- [ ] Clear filters shows all pins
+- [ ] URL updates with tag params`,
     labels: ['feature', 'enhancement'],
     reviewers: ['bob-martinez-dev'],
     state: 'open',
@@ -104,7 +238,21 @@ const prs = [
   {
     branch: 'feature/notifications',
     title: 'Add notification system for likes and comments',
-    body: `## Summary\n\n- Notifications table in SQLite\n- API endpoint for fetching user notifications\n- Bell icon in header with unread count\n- Mark notifications as read\n\nRelated to #55\n\n## Test plan\n\n- [ ] Receive notification when pin is liked\n- [ ] Receive notification when pin gets a comment\n- [ ] Unread count shows in header\n- [ ] Mark all as read works`,
+    body: `## Summary
+
+- Notifications table in SQLite
+- API endpoint for fetching user notifications
+- Bell icon in header with unread count
+- Mark notifications as read
+
+Related to #55
+
+## Test plan
+
+- [ ] Receive notification when pin is liked
+- [ ] Receive notification when pin gets a comment
+- [ ] Unread count shows in header
+- [ ] Mark all as read works`,
     labels: ['feature', 'api'],
     reviewers: ['alice-chen-dev'],
     state: 'open',
@@ -112,7 +260,21 @@ const prs = [
   {
     branch: 'feature/dark-mode',
     title: 'Implement dark mode theme',
-    body: `## Summary\n\n- CSS custom properties for dark theme\n- Toggle in header/settings\n- Persist preference in localStorage\n- Respect system preference via prefers-color-scheme\n\nRelated to #48\n\n## Test plan\n\n- [ ] Toggle between light and dark mode\n- [ ] Preference persists across sessions\n- [ ] All components render correctly in dark mode\n- [ ] No contrast issues (WCAG AA)`,
+    body: `## Summary
+
+- CSS custom properties for dark theme
+- Toggle in header/settings
+- Persist preference in localStorage
+- Respect system preference via prefers-color-scheme
+
+Related to #48
+
+## Test plan
+
+- [ ] Toggle between light and dark mode
+- [ ] Preference persists across sessions
+- [ ] All components render correctly in dark mode
+- [ ] No contrast issues (WCAG AA)`,
     labels: ['feature', 'design', 'accessibility'],
     reviewers: ['carol-park-ux'],
     state: 'open',
@@ -122,7 +284,21 @@ const prs = [
   {
     branch: 'feature/image-upload',
     title: '[WIP] Add image upload with drag and drop',
-    body: `## Summary\n\nWork in progress - adding direct image upload support.\n\n- [ ] Drag and drop zone component\n- [ ] File validation (type, size)\n- [ ] Upload to local storage (S3 later)\n- [ ] Preview before saving\n- [ ] Progress indicator\n\nRelated to #60\n\n## Notes\n\nStill deciding between local file storage and jumping straight to S3. Need to figure out the deployment story first.`,
+    body: `## Summary
+
+Work in progress - adding direct image upload support.
+
+- [ ] Drag and drop zone component
+- [ ] File validation (type, size)
+- [ ] Upload to local storage (S3 later)
+- [ ] Preview before saving
+- [ ] Progress indicator
+
+Related to #60
+
+## Notes
+
+Still deciding between local file storage and jumping straight to S3. Need to figure out the deployment story first.`,
     labels: ['feature', 'enhancement'],
     reviewers: [],
     state: 'draft',
@@ -130,7 +306,21 @@ const prs = [
   {
     branch: 'feature/admin-panel',
     title: '[WIP] Admin panel for content moderation',
-    body: `## Summary\n\nEarly work on an admin panel.\n\n- [ ] Admin role in users table\n- [ ] Admin dashboard page\n- [ ] Report pin/comment functionality\n- [ ] Ban user capability\n- [ ] Content moderation queue\n\nRelated to #70\n\n## Notes\n\nJust scaffolding for now. Need to discuss admin role implementation with the team.`,
+    body: `## Summary
+
+Early work on an admin panel.
+
+- [ ] Admin role in users table
+- [ ] Admin dashboard page
+- [ ] Report pin/comment functionality
+- [ ] Ban user capability
+- [ ] Content moderation queue
+
+Related to #70
+
+## Notes
+
+Just scaffolding for now. Need to discuss admin role implementation with the team.`,
     labels: ['feature', 'api'],
     reviewers: [],
     state: 'draft',
@@ -140,7 +330,19 @@ const prs = [
   {
     branch: 'feature/graphql-api',
     title: 'Replace REST API with GraphQL',
-    body: `## Summary\n\nProposed migration to GraphQL for the API layer.\n\n- Apollo Server setup\n- Type definitions for all models\n- Resolvers for queries and mutations\n\n## Discussion\n\nAfter team discussion, we decided REST is fine for our use case. GraphQL adds complexity we don't need at this scale.\n\nClosing in favor of keeping REST.`,
+    body: `## Summary
+
+Proposed migration to GraphQL for the API layer.
+
+- Apollo Server setup
+- Type definitions for all models
+- Resolvers for queries and mutations
+
+## Discussion
+
+After team discussion, we decided REST is fine for our use case. GraphQL adds complexity we don't need at this scale.
+
+Closing in favor of keeping REST.`,
     labels: ['api'],
     reviewers: [],
     state: 'closed',
@@ -149,22 +351,49 @@ const prs = [
   {
     branch: 'feature/redis-caching',
     title: 'Add Redis caching layer for popular pins',
-    body: `## Summary\n\n- Redis cache for pin feed\n- Cache invalidation on pin creation/deletion\n- TTL-based expiration\n\n## Discussion\n\nSQLite with WAL mode is fast enough for our current traffic. Premature optimization.\n\nClosing — we'll add caching if we actually hit performance issues.`,
+    body: `## Summary
+
+- Redis cache for pin feed
+- Cache invalidation on pin creation/deletion
+- TTL-based expiration
+
+## Discussion
+
+SQLite with WAL mode is fast enough for our current traffic. Premature optimization.
+
+Closing - we'll add caching if we actually hit performance issues.`,
     labels: ['performance', 'api'],
     reviewers: [],
     state: 'closed',
-    close_comment: "Closing this — SQLite WAL mode handles our read volume just fine. Let's wait until we have actual performance data before adding infrastructure complexity.",
+    close_comment: "Closing this - SQLite WAL mode handles our read volume just fine. Let's wait until we have actual performance data before adding infrastructure complexity.",
   },
 ];
 
 const dryRun = process.argv.includes('--dry-run');
+const startArg = process.argv.indexOf('--start');
+const startFrom = startArg !== -1 ? parseInt(process.argv[startArg + 1]) - 1 : 0;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/** Write body to temp file and run gh command with --body-file */
+function ghWithBodyFile(cmd, body) {
+  const tmpFile = join(tmpDir, `body-${Date.now()}-${Math.random().toString(36).slice(2)}.md`);
+  writeFileSync(tmpFile, body, 'utf-8');
+  try {
+    const result = execSync(`${cmd} --body-file "${tmpFile}"`, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return result.trim();
+  } finally {
+    try { unlinkSync(tmpFile); } catch {}
+  }
+}
+
 async function createPRs() {
-  for (let i = 0; i < prs.length; i++) {
+  for (let i = startFrom; i < prs.length; i++) {
     const pr = prs[i];
     console.log(`\n[${i + 1}/${prs.length}] ${pr.title}`);
 
@@ -179,7 +408,6 @@ async function createPRs() {
       let cmd = `gh pr create --repo ${REPO}`;
       cmd += ` --head "${pr.branch}"`;
       cmd += ` --title "${pr.title.replace(/"/g, '\\"')}"`;
-      cmd += ` --body "${pr.body.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`;
 
       if (pr.labels.length > 0) {
         cmd += ` --label "${pr.labels.join(',')}"`;
@@ -193,8 +421,19 @@ async function createPRs() {
         cmd += ' --draft';
       }
 
-      const result = execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
-      const prUrl = result.trim();
+      let prUrl;
+      try {
+        prUrl = ghWithBodyFile(cmd, pr.body);
+      } catch (e) {
+        // If reviewer fails (not a collaborator yet), retry without reviewer
+        if (pr.reviewers?.length > 0 && e.message.includes('not found')) {
+          console.log(`  Reviewers not available, creating without reviewers...`);
+          let retryCmd = cmd.replace(` --reviewer "${pr.reviewers.join(',')}"`, '');
+          prUrl = ghWithBodyFile(retryCmd, pr.body);
+        } else {
+          throw e;
+        }
+      }
       const prNumber = prUrl.match(/\/(\d+)$/)?.[1];
       console.log(`  Created: #${prNumber}`);
 
@@ -206,9 +445,9 @@ async function createPRs() {
       } else if (pr.state === 'closed') {
         if (pr.close_comment) {
           await sleep(500);
-          execSync(
-            `gh pr comment ${prNumber} --repo ${REPO} --body "${pr.close_comment.replace(/"/g, '\\"')}"`,
-            { stdio: 'pipe' }
+          ghWithBodyFile(
+            `gh pr comment ${prNumber} --repo ${REPO}`,
+            pr.close_comment
           );
           console.log(`  Added close comment`);
         }
@@ -224,7 +463,7 @@ async function createPRs() {
     }
   }
 
-  console.log(`\nDone! Created ${prs.length} PRs.`);
+  console.log(`\nDone! Created ${prs.length - startFrom} PRs.`);
 }
 
 createPRs();

@@ -5,7 +5,7 @@
 
 import { execSync } from 'child_process';
 
-const REPO = 'Glint-Software/glinterest';
+const REPO = process.env.GLINTEREST_REPO || 'Glint-Software/glinterest';
 
 const milestones = [
   { title: 'v0.1 — Core', due_on: '2026-03-15', description: 'Basic pins, boards, auth' },

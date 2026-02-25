@@ -5,7 +5,7 @@
 
 import { execSync } from 'child_process';
 
-const REPO = 'Glint-Software/glinterest';
+const REPO = process.env.GLINTEREST_REPO || 'Glint-Software/glinterest';
 
 const labels = [
   { name: 'bug', color: 'd73a4a', description: "Something isn't working" },
