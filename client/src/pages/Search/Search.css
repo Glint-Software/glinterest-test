@@ -1,0 +1,45 @@
+.search-header {
+  padding: 24px 0 8px;
+}
+
+.search-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.search-count {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.popular-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.tag-pill {
+  padding: 6px 14px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  transition: background 0.15s;
+}
+
+.tag-pill:hover {
+  background: var(--color-border);
+}
+
+.tag-pill.active {
+  background: var(--color-text);
+  color: white;
+}
+
+.tag-pill span {
+  margin-left: 4px;
+  opacity: 0.6;
+}
