@@ -8,9 +8,10 @@
 //   --start=N    Start from issue index N (for resuming after errors)
 
 import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync, mkdtempSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { tmpdir } from 'os';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO = 'Glint-Software/glinterest';
@@ -19,27 +20,23 @@ const dryRun = process.argv.includes('--dry-run');
 const startArg = process.argv.find(a => a.startsWith('--start='));
 const startIndex = startArg ? parseInt(startArg.split('=')[1]) : 0;
 
+// Create a temp directory for body files
+const tmpDir = mkdtempSync(join(tmpdir(), 'glinterest-'));
+
 // Load issues data
 const issues = JSON.parse(readFileSync(join(__dirname, 'data', 'issues.json'), 'utf-8'));
 console.log(`Loaded ${issues.length} issues from data file`);
 
-// Map milestone numbers to titles (created by seed-milestones.js)
-// We need to look up milestone numbers from the GitHub API
-async function getMilestoneMap() {
+// Fetch milestones from GitHub API
+function getMilestoneMap() {
   try {
-    const result = execSync(`gh api repos/${REPO}/milestones --jq '.[].title'`, { encoding: 'utf-8' });
-    const titles = result.trim().split('\n');
+    const result = execSync(`gh api repos/${REPO}/milestones`, { encoding: 'utf-8' });
+    const milestones = JSON.parse(result);
     const map = {};
-    // Milestones are returned in order of creation
-    const milestoneIds = JSON.parse(
-      execSync(`gh api repos/${REPO}/milestones --jq '[.[].number]'`, { encoding: 'utf-8' })
-    );
-    const milestoneTitles = JSON.parse(
-      execSync(`gh api repos/${REPO}/milestones --jq '[.[].title]'`, { encoding: 'utf-8' })
-    );
-    for (let i = 0; i < milestoneIds.length; i++) {
-      map[i + 1] = milestoneIds[i]; // Our data uses 1-indexed milestone references
+    for (let i = 0; i < milestones.length; i++) {
+      map[i + 1] = milestones[i].title;
     }
+    console.log(`Found ${milestones.length} milestones:`, milestones.map(m => m.title).join(', '));
     return map;
   } catch {
     console.warn('Could not fetch milestones. Milestone assignment will be skipped.');
@@ -51,8 +48,20 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// Write content to temp file, execute gh command with --body-file, then clean up
+function ghWithBodyFile(args, body) {
+  const tmpFile = join(tmpDir, `body-${Date.now()}.md`);
+  writeFileSync(tmpFile, body, 'utf-8');
+  try {
+    const result = execSync(`${args} --body-file "${tmpFile}"`, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
+    return result.trim();
+  } finally {
+    try { unlinkSync(tmpFile); } catch {}
+  }
+}
+
 async function createIssues() {
-  const milestoneMap = await getMilestoneMap();
+  const milestoneMap = getMilestoneMap();
 
   for (let i = startIndex; i < issues.length; i++) {
     const issue = issues[i];
@@ -68,10 +77,9 @@ async function createIssues() {
     }
 
     try {
-      // Build the gh issue create command
+      // Build the gh issue create command (without --body)
       let cmd = `gh issue create --repo ${REPO}`;
       cmd += ` --title "${issue.title.replace(/"/g, '\\"')}"`;
-      cmd += ` --body "${issue.body.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`;
 
       if (issue.labels && issue.labels.length > 0) {
         cmd += ` --label "${issue.labels.join(',')}"`;
@@ -85,19 +93,16 @@ async function createIssues() {
         cmd += ` --assignee "${issue.assignee}"`;
       }
 
-      const result = execSync(cmd, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] });
-      const issueUrl = result.trim();
+      // Use body file to avoid shell escaping issues
+      const issueUrl = ghWithBodyFile(cmd, issue.body);
       const issueNumber = issueUrl.match(/\/(\d+)$/)?.[1];
       console.log(`  Created: #${issueNumber}`);
 
       // Add comments if any
       if (issue.comments && issue.comments.length > 0) {
         for (const comment of issue.comments) {
-          await sleep(500); // Rate limiting
-          execSync(
-            `gh issue comment ${issueNumber} --repo ${REPO} --body "${comment.replace(/"/g, '\\"').replace(/\n/g, '\\n')}"`,
-            { stdio: 'pipe' }
-          );
+          await sleep(500);
+          ghWithBodyFile(`gh issue comment ${issueNumber} --repo ${REPO}`, comment);
           console.log(`  Added comment`);
         }
       }
@@ -109,7 +114,7 @@ async function createIssues() {
         console.log(`  Closed`);
       }
 
-      // Rate limiting - be gentle with the API
+      // Rate limiting
       await sleep(1000);
 
     } catch (e) {
