@@ -1,0 +1,95 @@
+.pin-card {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+
+.pin-card-image {
+  display: block;
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.pin-card-image img {
+  width: 100%;
+  display: block;
+  transition: filter 0.15s;
+}
+
+.pin-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 12px;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.pin-card-image:hover .pin-card-overlay {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.pin-card-like {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.pin-card-like:hover {
+  transform: scale(1.05);
+}
+
+.pin-card-like.liked {
+  background: var(--color-text);
+}
+
+.pin-card-info {
+  padding: 8px 4px;
+}
+
+.pin-card-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.pin-card-title:hover {
+  text-decoration: underline;
+}
+
+.pin-card-author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.pin-card-author:hover {
+  text-decoration: underline;
+}
+
+.pin-card-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+}
