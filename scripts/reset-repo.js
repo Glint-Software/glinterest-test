@@ -147,7 +147,7 @@ async function main() {
   }
 
   // Step 1: Delete the remote repo
-  console.log('Step 1/6: Deleting remote repo...');
+  console.log('Step 1/8: Deleting remote repo...');
   // Unarchive first if needed (archived repos can't be deleted)
   run(`gh api repos/${REPO} -X PATCH -f archived=false`, {
     label: `Unarchive ${REPO}`,
@@ -166,7 +166,7 @@ async function main() {
   }
 
   // Step 2: Recreate the repo
-  console.log('Step 2/6: Creating repo...');
+  console.log('Step 2/8: Creating repo...');
   run(
     `gh repo create ${REPO} --public --description "${DESCRIPTION}"`,
     { label: `gh repo create ${REPO}` }
@@ -180,7 +180,7 @@ async function main() {
   }
 
   // Step 3: Push all branches
-  console.log('Step 3/6: Pushing all branches...');
+  console.log('Step 3/8: Pushing all branches...');
 
   // For test repos, we need to add a temporary remote pointing to the target
   const remoteName = isMarketingRepo ? 'origin' : 'reset-target';
@@ -220,7 +220,7 @@ async function main() {
   console.log();
 
   // Step 4: Invite collaborators
-  console.log('Step 4/6: Inviting collaborators...');
+  console.log('Step 4/8: Inviting collaborators...');
   for (const user of COLLABORATORS) {
     run(
       `gh api repos/${REPO}/collaborators/${user} -X PUT -f permission=push`,
@@ -236,7 +236,7 @@ async function main() {
   }
 
   // Step 5: Seed GitHub metadata
-  console.log('Step 5/6: Seeding labels, milestones, and issues...');
+  console.log('Step 5/8: Seeding labels, milestones, and issues...');
   console.log('\n--- Labels ---');
   runScript('seed-labels.js');
   console.log('\n--- Milestones ---');
@@ -249,8 +249,18 @@ async function main() {
   console.log();
 
   // Step 6: Seed PRs
-  console.log('Step 6/6: Creating pull requests...');
+  console.log('Step 6/8: Creating pull requests...');
   runScript('seed-prs.js', 600000); // 10 min timeout for 15 PRs with merges
+  console.log();
+
+  // Step 7: Create releases
+  console.log('Step 7/8: Creating releases...');
+  runScript('seed-releases.js');
+  console.log();
+
+  // Step 8: Trigger workflow runs
+  console.log('Step 8/8: Triggering workflow runs...');
+  runScript('seed-actions.js', 120000);
   console.log();
 
   // Re-archive the marketing repo to protect it
@@ -272,6 +282,8 @@ async function main() {
   console.log(`  Collaborators: ${COLLABORATORS.length}`);
   console.log(`  Issues:        112`);
   console.log(`  PRs:           15`);
+  console.log(`  Releases:      5`);
+  console.log(`  Workflows:     6 (7+ runs triggered)`);
   if (isMarketingRepo) {
     console.log(`  Archived:      yes`);
   }
