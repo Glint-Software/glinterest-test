@@ -11,11 +11,18 @@
 //   - Long Running: triggered then cancelled for "cancelled" state
 //   - Nightly Maintenance: manual trigger of scheduled workflow
 //
-// Also triggers CI on open PR branches to produce check runs on PRs.
+// Also pushes workflow files to open PR branches to trigger check runs.
 
 import { execSync } from 'child_process';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, '..');
 
 const REPO = process.env.GLINTEREST_REPO || 'Glint-Software/glinterest';
+const DEFAULT_REPO = 'Glint-Software/glinterest';
+const isDefaultRepo = REPO === DEFAULT_REPO;
 const dryRun = process.argv.includes('--dry-run');
 
 function sleep(ms) {
@@ -30,6 +37,7 @@ function run(cmd, opts = {}) {
   try {
     const result = execSync(cmd, {
       encoding: 'utf-8',
+      cwd: opts.cwd || undefined,
       stdio: ['pipe', 'pipe', 'pipe'],
       timeout: opts.timeout || 30000,
     });
@@ -116,24 +124,59 @@ async function main() {
     }
   }
 
-  // 7. Trigger CI on open PR branches to get check runs on PRs
-  console.log('7. Triggering CI on open PR branches for check runs...');
+  // 7. Push workflow files to open PR branches so the pull_request trigger fires.
+  //    ci-pass.yml has `on: pull_request` which triggers when the branch is updated.
+  console.log('7. Adding workflow files to open PR branches for check runs...');
   const prsJson = run(
     `gh pr list --repo ${REPO} --state open --json headRefName,number`,
     { ignoreError: true }
   );
 
-  if (prsJson) {
+  if (prsJson && !dryRun) {
     const prs = JSON.parse(prsJson);
+
+    // Set up a temporary remote if targeting a non-default repo
+    const remoteName = isDefaultRepo ? 'origin' : 'actions-target';
+    if (!isDefaultRepo) {
+      run(`git remote remove ${remoteName}`, { cwd: ROOT, ignoreError: true });
+      run(`git remote add ${remoteName} https://github.com/${REPO}.git`, { cwd: ROOT });
+      // Fetch so we have the remote branch refs
+      run(`git fetch ${remoteName}`, { cwd: ROOT, timeout: 60000 });
+    }
+
+    const currentBranch = run('git rev-parse --abbrev-ref HEAD', { cwd: ROOT });
+
     for (const pr of prs) {
       console.log(`  PR #${pr.number} (${pr.headRefName})...`);
-      run(
-        `gh workflow run "CI (Pass)" --repo ${REPO} --ref "${pr.headRefName}"`,
-        { ignoreError: true }
-      );
+      try {
+        execSync(`git checkout "${pr.headRefName}"`, { cwd: ROOT, stdio: 'pipe' });
+        // Copy workflow files from main
+        execSync('git checkout main -- .github/workflows/', { cwd: ROOT, stdio: 'pipe' });
+        execSync('git commit -m "Add CI workflows"', { cwd: ROOT, stdio: 'pipe' });
+        execSync(`git push ${remoteName} "${pr.headRefName}"`, { cwd: ROOT, stdio: 'pipe' });
+        console.log('    Pushed workflow files.');
+      } catch (e) {
+        const msg = (e.stderr || e.message || '').split('\n')[0];
+        console.log(`    (skipped: ${msg})`);
+      }
       await sleep(1500);
     }
-    console.log(`  Triggered CI on ${prs.length} PR branches.\n`);
+
+    // Return to original branch
+    try {
+      execSync(`git checkout "${currentBranch}"`, { cwd: ROOT, stdio: 'pipe' });
+    } catch {
+      execSync('git checkout main', { cwd: ROOT, stdio: 'pipe' });
+    }
+
+    // Clean up temporary remote
+    if (!isDefaultRepo) {
+      run(`git remote remove ${remoteName}`, { cwd: ROOT, ignoreError: true });
+    }
+
+    console.log(`  Processed ${prs.length} PR branches.\n`);
+  } else if (dryRun) {
+    console.log('  [dry-run] Would push workflow files to open PR branches.\n');
   }
 
   // Summary
