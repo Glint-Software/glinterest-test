@@ -1,0 +1,19 @@
+# Long-running workflow — tests in-progress display, cancel, force-cancel
+name: Long Running
+
+on:
+  workflow_dispatch:
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Phase 1 - Download data
+        run: echo "Downloading..." && sleep 10
+      - name: Phase 2 - Process data
+        run: echo "Processing..." && sleep 30
+      - name: Phase 3 - Generate output
+        run: echo "Generating..." && sleep 30
+      - name: Phase 4 - Cleanup
+        run: echo "Cleaning up..." && sleep 10
