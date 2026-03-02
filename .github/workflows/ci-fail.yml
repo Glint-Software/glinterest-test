@@ -1,0 +1,25 @@
+# CI that always fails — tests failure display and re-run (for attempt testing)
+name: CI (Fail)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: echo "Building..."
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: echo "Tests starting..." && sleep 2
+      - name: Failing test
+        run: |
+          echo "Running flaky test..."
+          exit 1
