@@ -1,0 +1,19 @@
+# Scheduled + manual — tests schedule event type display, also can be disabled
+name: Nightly Maintenance
+
+on:
+  schedule:
+    - cron: '0 3 * * 1'  # Weekly on Monday at 3am UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Clean old artifacts
+        run: echo "Cleaning artifacts older than 30 days..."
+      - name: Update dependencies
+        run: echo "Checking for updates..."
+      - name: Generate weekly report
+        run: echo "Report generated"
