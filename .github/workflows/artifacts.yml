@@ -1,0 +1,50 @@
+# Produces artifacts — tests artifact browsing, download, deletion
+name: Build Artifacts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate build output
+        run: |
+          mkdir -p dist
+          echo "Build output for $(date)" > dist/app.txt
+          echo "Source map data" > dist/app.txt.map
+          dd if=/dev/urandom bs=1024 count=50 of=dist/bundle.bin 2>/dev/null
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+          retention-days: 1
+
+      - name: Generate test report
+        run: |
+          mkdir -p reports
+          echo "<html><body><h1>Test Report</h1><p>All 42 tests passed</p></body></html>" > reports/test-report.html
+          echo "test1,pass\ntest2,pass\ntest3,pass" > reports/results.csv
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: reports/
+          retention-days: 1
+
+      - name: Generate coverage
+        run: |
+          mkdir -p coverage
+          echo "Lines: 87.3%" > coverage/summary.txt
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 1
